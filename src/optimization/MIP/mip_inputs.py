@@ -87,21 +87,45 @@ class MIP_Inputs():
            Mileage is random every year, with mean of 2020 miles and std of overall inventory.
            Mileage is repeated for each schedule."""
         means = np.array(self.data.miles2020).reshape(-1,1)
-        std_dev = self.data.miles2020.std()
-        annual_mileage = np.round(np.random.normal(loc=means,scale=std_dev,size=(self.num_vehicles,self.num_years)))
-        annual_mileage = np.repeat(annual_mileage[:,np.newaxis,:],self.num_schedules,axis=1)
-        annual_mileage[annual_mileage<0] = 1000
-        
-        # vehicle_mileage = np.repeat(np.round(np.random.normal(loc=10000,scale=2000,size=(1, 15))),numSchedules,axis=0)
-        # annual_mileage = np.ones(shape=(self.num_vehicles,numSchedules,15))
-        # annual_mileage[0,:,:]*=np.round(np.random.normal(loc=10000,scale=std_dev))
+        # std_dev = self.data.miles2020.std()
+        # annual_mileage = np.round(np.random.normal(loc=means,scale=std_dev,size=(self.num_vehicles,self.num_years)))
+        # annual_mileage = np.repeat(annual_mileage[:,np.newaxis,:],self.num_schedules,axis=1)
+        # annual_mileage[annual_mileage<0] = 1000
+
+        annual_mileage = np.repeat(means,self.num_schedules,axis=1)
+        annual_mileage = np.repeat(annual_mileage[:,:,np.newaxis],self.num_years,axis=2)
         return annual_mileage
 
-    #TODO: Fix to be the cumsum of annual mileage, allowing for odometer resets upon replacement.
+    #TODO: Fix to be the cumsum of annual mileage, allowing for odometer resets upon replacement. -- only do this is we really start implementing random mileage. Right now it is just going to be the same mileage every year
     def make_odometer(self):
         """Matrix showing what the odometer reading will be under each schedule."""
         odometer = self.annual_mileage*self.age
         return odometer
+
+    #alternative odometer approach if I come back to it. 
+    # def initial_vehicle_odometer():
+    #     """Gets the vehicle age building process started. Produces a matrix for the age of the vehicle according to the replacement schedule, which is later fixed by get_vehicle_age"""
+    #     startingOdo = np.repeat(np.array(inputs.data.cumulative_miles), inputs.num_schedules, axis=0).reshape(
+    #         inputs.num_vehicles,inputs.num_schedules,1)
+    #     odometer = startingOdo+np.cumsum(inputs.annual_mileage,axis=2)*inputs.keepSchedules
+    #     odometer[odometer==startingOdo] = 0 #fixes the fact that replaced vehicles start at 0 (if this wasn't here they would start at the starting odometer)
+    #     return odometer
+
+    # def get_vehicle_odometer(odometer=None,k=0):
+    #     if np.sum(k)==0:
+    #         odometer = initial_vehicle_odometer()
+
+    #     diff = np.diff(odometer,axis=2,prepend=0)
+    #     diffMask = diff<0#np.append(np.ones(shape=(inputs.num_vehicles,inputs.num_schedules,1)),diff,axis=2)<0
+    #     odometer[diffMask]=k
+        
+    #     k = k+np.sum(inputs.annual_mileage*diffMask,axis=(0,1))
+
+    #     print('hi')
+    #     if odometer[diffMask].size==0:
+    #         return odometer
+    #     else:
+    #         return get_vehicle_odometer(odometer,k=k+1)
 
     def get_acquisition_cost(self):
         acquisition = self.replacement_schedules.copy()

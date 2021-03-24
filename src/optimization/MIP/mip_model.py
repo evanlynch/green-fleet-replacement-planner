@@ -3,7 +3,9 @@ import gurobipy as grb
 import pandas as pd
 from .mip_inputs import MIP_Inputs
 
-#TODO: Implement depreciation
+#TODO: Implement depreciation to match GKs
+#TODO: Speed up model if needed
+#TODO: Make maintenance match GKs approach
 
 class MIP_Model(MIP_Inputs): 
     def __init__(self,data,UI_params):
