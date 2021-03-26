@@ -1,16 +1,22 @@
 import numpy as np
 import pandas as pd
+import gurobipy as grb
 from sklearn.metrics.pairwise import cosine_similarity
+import streamlit as st
+from types import MappingProxyType
+
 
 from .mip_model import MIP_Model
 
-
 class MIP_Outputs(MIP_Model):
+
+    # @st.cache
     def __init__(self,data,UI_params):
         super().__init__(data,UI_params)
 
         self.num_alternative_solutions = 2
-        
+    
+    # @st.cache(hash_funcs={MappingProxyType: id})#,PyCapsule:lambda _:None})
     def get_optimal_solution(self):
         """Returns the optimal objective value as well as the solution vector."""
         obj = self.m.getObjective().getValue()
@@ -19,8 +25,10 @@ class MIP_Outputs(MIP_Model):
             if self.x[i].x == 1:
                 solution.append(i[1]) 
         solution = np.array(solution)
+
         return obj,solution
 
+    # @st.cache(allow_output_mutation=True)
     def get_alternative_solutions(self):
         """Returns the detailed output options for all alternative solutions dumped in the solution pool."""
         #multiple solutions
@@ -62,6 +70,7 @@ class MIP_Outputs(MIP_Model):
                 None
         return options
 
+    # @st.cache(hash_funcs={grb.Model: hash})
     def get_similarity_scores(self,alt_solutions):
         """Computes the cosine similarity of each solution relative to option A (first optimal solution)"""
         similarity_scores = []
@@ -80,6 +89,7 @@ class MIP_Outputs(MIP_Model):
 
         return similarity_scores
 
+    # @st.cache(hash_funcs={grb.Model: hash})
     def get_alt_sol_objs(self,alt_solutions,optimal_sol_obj):
         """Returns the objectives for alternative solutions"""
         objs = []
@@ -92,6 +102,7 @@ class MIP_Outputs(MIP_Model):
         objs = pd.DataFrame(objs,columns=['alt_sol_id','obj'])
         return objs
 
+    # @st.cache(hash_funcs={grb.Model: hash})
     def select_alternative_solutions(self,alt_solutions,optimal_sol_obj):
         """Selects n solutions to return as alternatives"""
         alt_sol_sim_scores = self.get_similarity_scores(alt_solutions)

@@ -1,13 +1,22 @@
 
 import gurobipy as grb
 import pandas as pd
+import streamlit as st
+
 from .mip_inputs import MIP_Inputs
 
 #TODO: Implement depreciation to match GKs
 #TODO: Speed up model if needed
 #TODO: Make maintenance match GKs approach
 
+@st.cache(suppress_st_warning=True)
+def funcc(x):
+    st.write('running funcc')
+    return x
+
 class MIP_Model(MIP_Inputs): 
+
+    @st.cache
     def __init__(self,data,UI_params):
         super().__init__(data,UI_params)  
         self.numDesiredSolutions = 500
@@ -20,6 +29,7 @@ class MIP_Model(MIP_Inputs):
         self.m = self.make_model()
         self.m.optimize()
 
+    @st.cache(hash_funcs={grb.Model: hash})
     def make_model(self):
         vehicles = [v for v in range(0,self.num_vehicles)]
         schedules = [s for s in range(0,self.num_schedules)]
