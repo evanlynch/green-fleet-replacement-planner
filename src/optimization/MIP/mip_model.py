@@ -9,14 +9,11 @@ from .mip_inputs import MIP_Inputs
 #TODO: Speed up model if needed
 #TODO: Make maintenance match GKs approach
 
-@st.cache(suppress_st_warning=True)
-def funcc(x):
-    st.write('running funcc')
-    return x
+
 
 class MIP_Model(MIP_Inputs): 
 
-    @st.cache
+    # @st.cache
     def __init__(self,data,UI_params):
         super().__init__(data,UI_params)  
         self.numDesiredSolutions = 500
@@ -26,10 +23,10 @@ class MIP_Model(MIP_Inputs):
         # self.maintenance = maintenance
         # self.emissions = emissions
         # self.infeasible_filter = infeasible_filter
-        self.m = self.make_model()
-        self.m.optimize()
+        # self.m = self.make_model()
+        # self.m.optimize()
 
-    @st.cache(hash_funcs={grb.Model: hash})
+    # @st.cache(hash_funcs={grb.Model: hash,tuple:hash,dict:hash})
     def make_model(self):
         vehicles = [v for v in range(0,self.num_vehicles)]
         schedules = [s for s in range(0,self.num_schedules)]
@@ -68,6 +65,7 @@ class MIP_Model(MIP_Inputs):
         m.setParam('PoolSearchMode',2) #tell gurobi I want multiple solutions
         m.setParam('PoolSolutions',self.numDesiredSolutions) #number of solutions I want
         m.setParam('TimeLimit',self.solverTimeLimit)
+        m.setParam('OutputFlag',0)
 
         x = {}
         for v in vehicles:
@@ -86,10 +84,10 @@ class MIP_Model(MIP_Inputs):
         c4 = m.addConstr((grb.quicksum(emissions[v,s][finalYear]*x[v,s] for v,s in self.validSchedules) <= self.emissions_goal),'emissions_goal')
 
         # self.m = m
-        self.x = x
-        self.penalty_budget = penalty_budget
-        self.penalty_emissions = penalty_emissions
-        self.vehicles = vehicles
-
-        return m#m,x,penalty_budget,penalty_emissions,vehicles,validSchedulesPerVehicle
+        # self.x = x
+        # self.penalty_budget = penalty_budget
+        # self.penalty_emissions = penalty_emissions
+        # self.vehicles = vehicles
+        # self.m = m
+        return (m,x,vehicles,penalty_budget,penalty_emissions,self.validSchedulesPerVehicle,self.validSchedules)#m,x,penalty_budget,penalty_emissions,vehicles,validSchedulesPerVehicle
 

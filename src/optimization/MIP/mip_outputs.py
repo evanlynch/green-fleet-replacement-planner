@@ -11,11 +11,21 @@ from .mip_model import MIP_Model
 class MIP_Outputs(MIP_Model):
 
     # @st.cache
-    def __init__(self,data,UI_params):
+    def __init__(self,data,UI_params,m,x,vehicles,penalty_budget,penalty_emissions,validSchedulesPerVehicle,validSchedules):
         super().__init__(data,UI_params)
 
         self.num_alternative_solutions = 2
-    
+        self.m = m
+        self.x = x
+        self.vehicles = vehicles
+        self.penalty_budget = penalty_budget
+        self.penalty_emissions = penalty_emissions
+        self.validSchedulesPerVehicle = validSchedulesPerVehicle
+        self.validSchedules = validSchedules
+
+        #TODO: This is duplicated. Fix that
+        self.numDesiredSolutions = 500
+
     # @st.cache(hash_funcs={MappingProxyType: id})#,PyCapsule:lambda _:None})
     def get_optimal_solution(self):
         """Returns the optimal objective value as well as the solution vector."""
@@ -67,7 +77,8 @@ class MIP_Outputs(MIP_Model):
                 options[sol,'emissions_amts'] = emissions_amts
                 options[sol,'conversions'] = conversions
             except:
-                None
+                raise
+
         return options
 
     # @st.cache(hash_funcs={grb.Model: hash})

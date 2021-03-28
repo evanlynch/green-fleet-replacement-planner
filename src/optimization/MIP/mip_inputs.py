@@ -4,10 +4,13 @@ import pandas as pd
 import datetime
 import streamlit as st
 
+#TODO: Get budget to increase over time
+
 class MIP_Inputs():
-    @st.cache
+    # @st.cache
     def __init__(self,data,UI_params):
         self.data = data
+        self.UI_params = UI_params
         self.num_vehicles = data.equipmentid.nunique()
         self.vehicle_idx = data.vehicle_idx.values
         self.current_vehicle_ages = np.array(data.current_age)
@@ -17,10 +20,10 @@ class MIP_Inputs():
         self.end_year = UI_params['planning_interval'][1]
         self.years = [t for t in range(self.start_year,self.end_year+1)]
         self.objective_weights = UI_params['objective_weights']
-        self.budget_acquisition = UI_params['initial_procurement_budget']*np.ones(shape=(self.num_years)) 
-        self.budget_operations = UI_params['initial_operations_budget']*np.ones(shape=(self.num_years))
+        self.budget_acquisition = self.get_budget('initial_procurement_budget')
+        self.budget_operations = self.get_budget('initial_operations_budget') 
         self.emissions_target_pct_of_base = UI_params['emissions_target_pct_of_base']
-        self.emissions_baseline = UI_params['emissions_baseline']
+        self.emissions_baseline = self.data.emissions2020.sum()/1000 #metric tons
         self.emissions_goal = self.get_emissions_goal()
         self.charging_station_cost = 5000
 
@@ -35,13 +38,18 @@ class MIP_Inputs():
         self.maintenance = self.get_maintenance_cost()
         self.infeasible_filter = self.find_infeasible_schedules()
     
-    @st.cache
+    def get_budget(self,budget_type):
+        bud = self.UI_params[budget_type]*np.ones(shape=(self.num_years)) 
+        bud = (bud + (bud*np.indices(bud.shape)*self.UI_params['budget_rate'])).flatten()
+        return bud
+
+    # @st.cache
     def get_emissions_goal(self):
         return self.emissions_baseline*self.emissions_target_pct_of_base
 
     #TODO: make years flexible
     #TODO: will likely need a generalizable method for computing the maximum number of replacements possible
-    @st.cache
+    # @st.cache
     def make_replacement_schedules(self):
         noReplacements = np.array([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
         oneReplacement = np.array([1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
@@ -60,12 +68,12 @@ class MIP_Inputs():
         replacementSchedules = np.repeat(replacementSchedules[np.newaxis,:, :], self.num_vehicles, axis=0)
         return replacementSchedules
     
-    @st.cache
+    # @st.cache
     def make_keep_schedules(self):
         """Opposite of replacement"""
         return (self.replacement_schedules-1)*-1
 
-    @st.cache
+    # @st.cache
     def initialize_vehicle_age(self):
         """Gets the vehicle age building process started. Produces a matrix for the age of the vehicle according to the replacement schedule, which is later fixed by get_vehicle_age"""
         startingAge = np.repeat(self.current_vehicle_ages, self.num_schedules, axis=0).reshape(
@@ -74,7 +82,7 @@ class MIP_Inputs():
         age[age==startingAge] = 0 #fixes the fact that replaced vehicles start at 0 (if this wasn't here they would start at the starting age)
         return age
 
-    @st.cache
+    # @st.cache
     def get_vehicle_age(self,age=None,k=1):
         if k==1:
             age = self.initialize_vehicle_age()
@@ -89,7 +97,7 @@ class MIP_Inputs():
             return self.get_vehicle_age(age,k=k+1)
 
     #TODO: Consider an alternative distro to normal bc of ngatives
-    @st.cache
+    # @st.cache
     def make_mileage(self):
         """Creates mileage matrix for each year. 
            Mileage is random every year, with mean of 2020 miles and std of overall inventory.
@@ -105,7 +113,7 @@ class MIP_Inputs():
         return annual_mileage
 
     #TODO: Fix to be the cumsum of annual mileage, allowing for odometer resets upon replacement. -- only do this is we really start implementing random mileage. Right now it is just going to be the same mileage every year    @st.cache
-    @st.cache
+    # @st.cache
     def make_odometer(self):
         """Matrix showing what the odometer reading will be under each schedule."""
         odometer = self.annual_mileage*self.age
@@ -135,7 +143,7 @@ class MIP_Inputs():
     #         return odometer
     #     else:
     #         return get_vehicle_odometer(odometer,k=k+1)
-    @st.cache
+    # @st.cache
     def get_acquisition_cost(self):
         acquisition = self.replacement_schedules.copy()
         charging_station = self.charging_station_cost/2
@@ -143,7 +151,7 @@ class MIP_Inputs():
             self.num_vehicles,self.num_schedules,1)*self.replacement_schedules
         return acquisition
   
-    @st.cache
+    # @st.cache
     def get_vehicle_type_trackers(self):
         """Returns two matrices. One that tracks if in a givemn year a schedule implies the vehicle is still an ice, and then the opposite: whether or not in a given year a vehicle is now an EV"""
         firstReplacements = np.argmax(self.replacement_schedules[0]==1,axis=1) #gets index of year the vehicle is first replaced (ie it transitions from ICE to EV)
@@ -159,7 +167,7 @@ class MIP_Inputs():
             is_ev[:,i,:firstReplacements[i]] = 0
         return is_ice,is_ev
 
-    @st.cache
+    # @st.cache
     def get_consumables(self):
         """Will make this function more flexible later. Calculates fuel cost as if always ICE and always EV. And then applies to the schedules based on when the initial transition from ICE to EV occurs. """   
         #ICE
@@ -177,7 +185,7 @@ class MIP_Inputs():
         consumables = np.round(fuel*self.is_ice+(electricity*self.is_ev))
         return consumables
 
-    @st.cache
+    # @st.cache
     def get_maintenance_cost(self):
         """- ! because this is likely to change. For now I'm just going to treat as a linear regression with made up coeffs."""
         maintenance = np.zeros(shape=(self.num_vehicles,self.num_schedules,self.num_years))
@@ -185,7 +193,7 @@ class MIP_Inputs():
         maintenance[np.logical_and(self.odometer>=10000,self.odometer<150000)] = 1200
         return maintenance
 
-    @st.cache
+    # @st.cache
     def get_emissions(self):
         """Will make this function more flexible later. Calculates fuel cost as if always ICE and always EV. And then applies to the schedules based on when the initial transition from ICE to EV occurs. """   
         #calc: kg CO2/gallon * mileage/mpg
@@ -198,10 +206,10 @@ class MIP_Inputs():
         ev_emissions = np.round(self.annual_mileage/np.repeat(np.array(self.data.replacement_vehicle_mpge),self.num_schedules).reshape(
             self.num_vehicles,self.num_schedules,1)*ev_emission_factor)
 
-        emissions = np.round((ice_emissions*self.is_ice)+(ev_emissions*self.is_ev))
+        emissions = np.round((ice_emissions*self.is_ice)+(ev_emissions*self.is_ev))/1000
         return emissions
 
-    @st.cache
+    # @st.cache
     def find_infeasible_schedules(self):
         """Generates a mask that is True for any schedule that is infeasible. These can be filtered out before running the model."""
         odometer_diff = np.diff(self.odometer)
