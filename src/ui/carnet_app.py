@@ -73,7 +73,7 @@ def carnet():
         ooo = 0
         # 7fc8206e-85d9-11eb-829f-0242ac120002 -q
     import subprocess
-    subprocess.call([os.path.join('src','ui',"grbgetkey.exe")])
+    subprocess.call([os.path.join('src','ui',"grbgetkey")])
 
     m = grb.Model('carnet')
     m.setParam('OutputFlag',0)
