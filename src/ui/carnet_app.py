@@ -30,6 +30,7 @@ parser.add_argument('--animal', action='append', default=[],
 
 try:
     args = parser.parse_args()
+    print('PARZED ARGZS')
 except:
     print('I CANT')
 
@@ -70,11 +71,11 @@ def carnet():
         ooo = 0
         
     m = grb.Model('carnet')
-
+    m.setParam('OutputFlag',0)
     m.setParam('PoolSearchMode',2) #tell gurobi I want multiple solutions
     m.setParam('PoolSolutions',inputs.numDesiredSolutions) #number of solutions I want
     m.setParam('TimeLimit',inputs.solverTimeLimit)
-    # m.setParam('OutputFlag',0)
+
 
     x = {}
     for v in vehicles:
@@ -149,16 +150,8 @@ if run:
 
 
 inputs = MIP_Inputs(data,UI_params)
-# model = MIP_Model(data,UI_params)
-
-# if run:
 m,x,vehicles,penalty_budget,penalty_emissions,validSchedulesPerVehicle,validSchedules = carnet()
-# m.optimize()
 
-# st.write(penalty_budget)
-# st.write(penalty_emissions)
-
-# st.write(m.getObjective().getValue())
 outputs = MIP_Outputs(data,UI_params,m,x,vehicles,penalty_budget,penalty_emissions,validSchedulesPerVehicle,validSchedules)
 alt_solutions = outputs.get_alternative_solutions()
 
