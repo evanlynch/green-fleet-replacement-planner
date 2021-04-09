@@ -3,6 +3,6 @@ sympy==1.7.1
 streamlit==0.80.0
 pandas==1.2.3
 numpy==1.19.2
-gurobipy
+-i https://pypi.gurobi.com gurobipy
 scikit_learn==0.24.1
 scipy==1.6.2
