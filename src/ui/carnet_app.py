@@ -117,7 +117,7 @@ def add_space(numSpaces):
 add_space(0)
 st.sidebar.markdown("CAR-NET (Carbon Neutral Evaluation Tool) was created for Baltimore County by George Mason University, SEOR Department")
 
-data = pd.read_excel(fleet_data).head(20)
+data = pd.read_excel(fleet_data).head(50)
 data['current_age'] = datetime.datetime.now().year - pd.to_datetime(data.purchasedate).dt.year
 data = data.reset_index().rename({"index":"vehicle_idx"},axis=1)
 data['county'] = 'Baltimore County'
