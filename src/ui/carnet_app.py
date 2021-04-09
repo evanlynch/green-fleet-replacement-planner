@@ -73,8 +73,6 @@ def carnet():
         ooo = 0
         # 7fc8206e-85d9-11eb-829f-0242ac120002 -q
     
-    os.system(os.path.join('src','ui','gurobi901','win64','bin',"grbgetkey.exe"))
-
     m = grb.Model('carnet')
     m.setParam('OutputFlag',0)
     m.setParam('PoolSearchMode',2) #tell gurobi I want multiple solutions
@@ -134,7 +132,7 @@ def add_space(numSpaces):
 add_space(0)
 st.sidebar.markdown("CAR-NET (Carbon Neutral Evaluation Tool) was created for Baltimore County by George Mason University, SEOR Department")
 
-data = pd.read_excel(fleet_data).head(50)
+data = pd.read_excel(fleet_data).head(40)
 data['current_age'] = datetime.datetime.now().year - pd.to_datetime(data.purchasedate).dt.year
 data = data.reset_index().rename({"index":"vehicle_idx"},axis=1)
 data['county'] = 'Baltimore County'
