@@ -11,7 +11,7 @@ import base64
 
 sys.path.append(os.path.join(os.getcwd(), '..','..'))
 print(os.getcwd())
-from .src.optimization.MIP.mip_inputs import *
+from ..optimization.MIP.mip_inputs import *
 from src.optimization.MIP.mip_model import *
 from src.optimization.MIP.mip_outputs import *
 
