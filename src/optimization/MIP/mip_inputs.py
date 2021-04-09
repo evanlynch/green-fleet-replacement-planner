@@ -4,21 +4,19 @@ import pandas as pd
 import datetime
 import streamlit as st
 
-#TODO: Get budget to increase over time
-
 class MIP_Inputs():
-    # @st.cache
     def __init__(self,data,UI_params):
         self.data = data
         self.UI_params = UI_params
         self.num_vehicles = data.equipmentid.nunique()
         self.vehicle_idx = data.vehicle_idx.values
         self.current_vehicle_ages = np.array(data.current_age)
-        self.replacement_schedules = self.make_replacement_schedules()
-        _,self.num_schedules,self.num_years = self.replacement_schedules.shape
         self.start_year = UI_params['planning_interval'][0]
         self.end_year = UI_params['planning_interval'][1]
         self.years = [t for t in range(self.start_year,self.end_year+1)]
+        self.num_years = len(self.years)
+        self.replacement_schedules = self.make_replacement_schedules()
+        _,self.num_schedules,_ = self.replacement_schedules.shape
         self.objective_weights = UI_params['objective_weights']
         self.budget_acquisition = self.get_budget('initial_procurement_budget')
         self.budget_operations = self.get_budget('initial_operations_budget') 
@@ -37,24 +35,23 @@ class MIP_Inputs():
         self.emissions = self.get_emissions()
         self.maintenance = self.get_maintenance_cost()
         self.infeasible_filter = self.find_infeasible_schedules()
+
+        self.numDesiredSolutions = 500
+        self.solverTimeLimit = 15
     
     def get_budget(self,budget_type):
         bud = self.UI_params[budget_type]*np.ones(shape=(self.num_years)) 
         bud = (bud + (bud*np.indices(bud.shape)*self.UI_params['budget_rate'])).flatten()
         return bud
 
-    # @st.cache
     def get_emissions_goal(self):
         return self.emissions_baseline*self.emissions_target_pct_of_base
 
-    #TODO: make years flexible
-    #TODO: will likely need a generalizable method for computing the maximum number of replacements possible
-    # @st.cache
     def make_replacement_schedules(self):
-        noReplacements = np.array([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
-        oneReplacement = np.array([1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
-        twoReplacements = np.array([1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
-        threeReplacements = np.array([1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0])
+        noReplacements = np.zeros(self.num_years)
+        oneReplacement = np.append(np.array([1]),np.zeros((self.num_years-1,)))
+        twoReplacements = np.append(np.array([1,1]),np.zeros((self.num_years-2,)))
+        threeReplacements = np.append(np.array([1,1,1]),np.zeros((self.num_years-3,)))
 
         noReplacements = list(multiset_permutations(noReplacements))
         oneReplacement = list(multiset_permutations(oneReplacement))
@@ -62,18 +59,13 @@ class MIP_Inputs():
         threeReplacements = list(multiset_permutations(threeReplacements))
 
         replacementSchedules = np.array(noReplacements+oneReplacement+twoReplacements+threeReplacements)
-        # replacementSchedules = np.array(twoReplacements+threeReplacements)
-
-        #create set of schedules for each vehicle
         replacementSchedules = np.repeat(replacementSchedules[np.newaxis,:, :], self.num_vehicles, axis=0)
         return replacementSchedules
     
-    # @st.cache
     def make_keep_schedules(self):
         """Opposite of replacement"""
         return (self.replacement_schedules-1)*-1
 
-    # @st.cache
     def initialize_vehicle_age(self):
         """Gets the vehicle age building process started. Produces a matrix for the age of the vehicle according to the replacement schedule, which is later fixed by get_vehicle_age"""
         startingAge = np.repeat(self.current_vehicle_ages, self.num_schedules, axis=0).reshape(
@@ -82,7 +74,6 @@ class MIP_Inputs():
         age[age==startingAge] = 0 #fixes the fact that replaced vehicles start at 0 (if this wasn't here they would start at the starting age)
         return age
 
-    # @st.cache
     def get_vehicle_age(self,age=None,k=1):
         if k==1:
             age = self.initialize_vehicle_age()
@@ -96,8 +87,6 @@ class MIP_Inputs():
         else:
             return self.get_vehicle_age(age,k=k+1)
 
-    #TODO: Consider an alternative distro to normal bc of ngatives
-    # @st.cache
     def make_mileage(self):
         """Creates mileage matrix for each year. 
            Mileage is random every year, with mean of 2020 miles and std of overall inventory.
@@ -112,8 +101,6 @@ class MIP_Inputs():
         annual_mileage = np.repeat(annual_mileage[:,:,np.newaxis],self.num_years,axis=2)
         return annual_mileage
 
-    #TODO: Fix to be the cumsum of annual mileage, allowing for odometer resets upon replacement. -- only do this is we really start implementing random mileage. Right now it is just going to be the same mileage every year    @st.cache
-    # @st.cache
     def make_odometer(self):
         """Matrix showing what the odometer reading will be under each schedule."""
         odometer = self.annual_mileage*self.age
