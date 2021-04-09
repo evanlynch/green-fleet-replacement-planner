@@ -10,11 +10,11 @@ import plotly.express as px
 import base64
 
 sys.path.append(os.path.join(os.getcwd(), '..','..'))
-sys.path.append(os.path.join(os.getcwd(), '..'))
-sys.path.append(os.path.join(os.getcwd(), '..','src'))
+# sys.path.append(os.path.join(os.getcwd(), '..'))
+# sys.path.append(os.path.join(os.getcwd(), '..','src'))
 sys.path.append(os.path.join(os.getcwd(),'src'))
+sys.path.append(os.path.join(os.getcwd(),'img'))
 
-print(os.getcwd())
 from optimization.MIP.mip_inputs import *
 from optimization.MIP.mip_model import *
 from optimization.MIP.mip_outputs import *
