@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 import base64
 
-os.system('grbgetkey 7fc8206e-85d9-11eb-829f-0242ac120002')
+os.system('grbgetkey 7fc8206e-85d9-11eb-829f-0242ac120002 /Y')
 
 sys.path.append(os.path.join(os.getcwd(), '..','..'))
 # sys.path.append(os.path.join(os.getcwd(), '..'))
