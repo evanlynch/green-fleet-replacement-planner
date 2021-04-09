@@ -19,6 +19,9 @@ from optimization.MIP.mip_inputs import *
 from optimization.MIP.mip_model import *
 from optimization.MIP.mip_outputs import *
 
+logo = os.path.join(os.getcwd(),'img','carnet_logo.png')
+fleet_data = os.path.join(os.getcwd(),'data','17MAR_data_template.xlsx')
+
 ####################################################################################################
 
 @st.cache(hash_funcs={tuple:lambda _: None,grb.Model:lambda _: None,dict:lambda _: None},suppress_st_warning=True)
@@ -90,7 +93,7 @@ def carnet():
 ####################################################################################################
 col1, mid, col2 = st.beta_columns([10,20,40])
 with col1:
-    st.image(os.path.join(os.getcwd(),'img','carnet_logo.png'), width=100)
+    st.image(logo, width=100)
 with mid:
     st.title('CAR-NET')
 with col2:
@@ -114,7 +117,7 @@ def add_space(numSpaces):
 add_space(0)
 st.sidebar.markdown("CAR-NET (Carbon Neutral Evaluation Tool) was created for Baltimore County by George Mason University, SEOR Department")
 
-data = pd.read_excel('../../data/17MAR_data_template.xlsx').head(100)
+data = pd.read_excel(fleet_data).head(100)
 data['current_age'] = datetime.datetime.now().year - pd.to_datetime(data.purchasedate).dt.year
 data = data.reset_index().rename({"index":"vehicle_idx"},axis=1)
 data['county'] = 'Baltimore County'
