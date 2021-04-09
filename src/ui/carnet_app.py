@@ -22,6 +22,17 @@ from optimization.MIP.mip_outputs import *
 logo = os.path.join(os.getcwd(),'img','carnet_logo.png')
 fleet_data = os.path.join(os.getcwd(),'data','17MAR_data_template.xlsx')
 
+import argparse
+parser = argparse.ArgumentParser(description='This app lists animals')
+
+parser.add_argument('--animal', action='append', default=[],
+                    help="Add one or more animals of your choice")
+
+try:
+    args = parser.parse_args()
+except:
+    print('I CANT')
+
 ####################################################################################################
 
 @st.cache(hash_funcs={tuple:lambda _: None,grb.Model:lambda _: None,dict:lambda _: None},suppress_st_warning=True)
