@@ -73,7 +73,7 @@ def carnet():
         ooo = 0
         # 7fc8206e-85d9-11eb-829f-0242ac120002 -q
     
-    os.system(os.path.join('src','ui',"grbgetkey"))
+    os.system(os.path.join('src','ui','gurobi901','win64','bin',"grbgetkey.exe"))
 
     m = grb.Model('carnet')
     m.setParam('OutputFlag',0)
