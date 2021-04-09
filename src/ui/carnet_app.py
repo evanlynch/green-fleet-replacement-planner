@@ -72,7 +72,7 @@ def carnet():
     except:
         ooo = 0
         # 7fc8206e-85d9-11eb-829f-0242ac120002 -q
-    os.system("grbgetkey")
+    os.system("grbgetkey.exe")
 
     m = grb.Model('carnet')
     m.setParam('OutputFlag',0)
