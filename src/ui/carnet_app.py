@@ -24,8 +24,8 @@ fleet_data = os.path.join(os.getcwd(),'data','17MAR_data_template.xlsx')
 
 import argparse
 parser = argparse.ArgumentParser(description='This app lists animals')
-
-parser.add_argument('--animal', action='grbgetkey 7fc8206e-85d9-11eb-829f-0242ac120002', default=[],
+#7fc8206e-85d9-11eb-829f-0242ac120002
+parser.add_argument('--animal', action='grbgetkey', default=[],
                     help="Add one or more animals of your choice")
 
 try:
