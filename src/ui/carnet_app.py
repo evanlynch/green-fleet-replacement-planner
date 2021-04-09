@@ -88,10 +88,9 @@ def carnet():
 
 
 ####################################################################################################
-print(os.getcwd())
 col1, mid, col2 = st.beta_columns([10,20,40])
 with col1:
-    st.image('carnet_logo.png', width=100)
+    st.image(os.path.join(os.getcwd(),'img','carnet_logo.png'), width=100)
 with mid:
     st.title('CAR-NET')
 with col2:
