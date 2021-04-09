@@ -71,9 +71,9 @@ def carnet():
         del m    
     except:
         ooo = 0
-    os.system("grbgetkey 7fc8206e-85d9-11eb-829f-0242ac120002 -q")
-    import time
-    time.sleep(5)
+        # 7fc8206e-85d9-11eb-829f-0242ac120002 -q
+    os.system("grbgetkey")
+
     m = grb.Model('carnet')
     m.setParam('OutputFlag',0)
     m.setParam('PoolSearchMode',2) #tell gurobi I want multiple solutions
