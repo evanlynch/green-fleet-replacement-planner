@@ -10,7 +10,7 @@ import plotly.express as px
 import base64
 
 
-os.system("grbgetkey 7fc8206e-85d9-11eb-829f-0242ac120002 -q")
+
 
 sys.path.append(os.path.join(os.getcwd(), '..','..'))
 # sys.path.append(os.path.join(os.getcwd(), '..'))
@@ -71,7 +71,7 @@ def carnet():
         del m    
     except:
         ooo = 0
-        
+    os.system("grbgetkey 7fc8206e-85d9-11eb-829f-0242ac120002 -q")
     m = grb.Model('carnet')
     m.setParam('OutputFlag',0)
     m.setParam('PoolSearchMode',2) #tell gurobi I want multiple solutions
